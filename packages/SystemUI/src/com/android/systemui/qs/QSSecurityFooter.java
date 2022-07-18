@@ -191,7 +191,6 @@ class QSSecurityFooter implements OnClickListener, DialogInterface.OnClickListen
         // Update visibility of footer
         mIsVisible = (isDeviceManaged && !isDemoDevice)
                 || hasCACerts
-                || vpnName != null
                 || isProfileOwnerOfOrganizationOwnedDevice
                 || isParentalControlsEnabled
                 || (hasDisclosableWorkProfilePolicy && isWorkProfileOn);
