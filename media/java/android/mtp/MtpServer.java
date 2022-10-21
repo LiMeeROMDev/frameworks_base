@@ -18,6 +18,7 @@ package android.mtp;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.SystemProperties;
 
 import com.android.internal.util.Preconditions;
 
@@ -87,6 +88,11 @@ public class MtpServer implements Runnable {
         }
 
         deviceInfoSerialNumber = strRandomId;
+
+        // Override deviceInfoModel
+        String mDeviceInfoModel = SystemProperties.get("ro.product.marketname", "");
+        if (mDeviceInfoModel != "")
+            deviceInfoModel = mDeviceInfoModel;
 
         native_setup(
                 database,
