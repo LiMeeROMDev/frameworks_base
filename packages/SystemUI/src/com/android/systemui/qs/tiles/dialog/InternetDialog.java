@@ -137,6 +137,7 @@ public class InternetDialog extends SystemUIDialog implements
     private boolean mCanChangeWifiState;
     private LinearLayout mFivegLayout;
     private ImageView mFivegIcon;
+    private TextView mFivegSummaryText;
     private TextView mFivegTitleText;
     private View mFivegToggleDivider;
     private Switch mFivegToggle;
@@ -243,12 +244,19 @@ public class InternetDialog extends SystemUIDialog implements
         mWiFiToggle = mDialogView.requireViewById(R.id.wifi_toggle);
         mFivegLayout = mDialogView.requireViewById(R.id.fiveg_layout);
         mFivegIcon = mDialogView.requireViewById(R.id.fiveg_icon);
+        mFivegSummaryText = mDialogView.requireViewById(R.id.fiveg_summary);
         mFivegTitleText = mDialogView.requireViewById(R.id.fiveg_title);
         mFivegToggleDivider = mDialogView.requireViewById(R.id.fiveg_toggle_divider);
         mFivegToggle = mDialogView.requireViewById(R.id.fiveg_toggle);
         mBackgroundOn = mContext.getDrawable(R.drawable.settingslib_switch_bar_bg_on);
         mInternetDialogTitle.setText(getDialogTitleText());
         mInternetDialogTitle.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+
+        mFivegSummaryText.setText(
+            mInternetDialogController.isFivegEnabled() ?
+            mContext.getString(R.string.switch_bar_on) :
+            mContext.getString(R.string.switch_bar_off)
+        );
 
         TypedArray typedArray = mContext.obtainStyledAttributes(
                 new int[]{android.R.attr.selectableItemBackground});
@@ -370,7 +378,14 @@ public class InternetDialog extends SystemUIDialog implements
                     }
                 });
         mFivegToggle.setOnCheckedChangeListener(
-            (buttonView, isChecked) -> mInternetDialogController.setFivegEnabled(isChecked));
+                (buttonView, isChecked) -> {
+                    mInternetDialogController.setFivegEnabled(isChecked);
+                    if (isChecked) {
+                        mFivegSummaryText.setText(mContext.getString(R.string.switch_bar_on));
+                    } else {
+                        mFivegSummaryText.setText(mContext.getString(R.string.switch_bar_off));
+                    }
+                });
         mConnectedWifListLayout.setOnClickListener(this::onClickConnectedWifi);
         mSeeAllLayout.setOnClickListener(this::onClickSeeMoreButton);
         mWiFiToggle.setOnCheckedChangeListener(

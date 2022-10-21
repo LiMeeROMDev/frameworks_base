@@ -18,6 +18,5 @@
     <string name="screen_pinning_toast_no_navbar_fpsensor">To unpin this screen, touch &amp; hold fingerprint sensor</string>
 
     <!-- 5G toggle in internet dialog -->
-    <string name="enable_fiveg">Enable 5G</string>
-
+    <string name="fiveg_title">5G Network</string>
 </resources>
