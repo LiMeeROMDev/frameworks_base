@@ -10285,6 +10285,13 @@ public final class Settings {
         public static final String STATUS_BAR_SHOW_VIBRATE_ICON = "status_bar_show_vibrate_icon";
 
         /**
+         * Whether to hide the VPN icon in the Status Bar (default on)
+         *
+         * @hide
+         */
+        public static final String STATUS_BAR_HIDE_VPN_ICON = "status_bar_hide_vpn_icon";
+
+        /**
          * Specifies whether the web action API is enabled.
          *
          * @hide

@@ -59,6 +59,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.UserInfo;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -92,6 +93,7 @@ import com.android.systemui.qs.dagger.QSScope;
 import com.android.systemui.settings.UserTracker;
 import com.android.systemui.statusbar.phone.SystemUIDialog;
 import com.android.systemui.statusbar.policy.SecurityController;
+import com.android.systemui.util.settings.SecureSettings;
 import com.android.systemui.util.ViewController;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -113,6 +115,7 @@ class QSSecurityFooter extends ViewController<View>
     private Context mContext;
     private final DevicePolicyManager mDpm;
     private final Callback mCallback = new Callback();
+    private final SecureSettings mSecureSettings;
     private final SecurityController mSecurityController;
     private final ActivityStarter mActivityStarter;
     private final Handler mMainHandler;
@@ -207,7 +210,7 @@ class QSSecurityFooter extends ViewController<View>
             UserTracker userTracker, @Main Handler mainHandler,
             ActivityStarter activityStarter, SecurityController securityController,
             DialogLaunchAnimator dialogLaunchAnimator, @Background Looper bgLooper,
-            BroadcastDispatcher broadcastDispatcher) {
+            BroadcastDispatcher broadcastDispatcher, SecureSettings secureSettings) {
         super(rootView);
         mFooterText = mView.findViewById(R.id.footer_text);
         mPrimaryFooterIcon = mView.findViewById(R.id.primary_footer_icon);
@@ -216,6 +219,7 @@ class QSSecurityFooter extends ViewController<View>
         mDpm = rootView.getContext().getSystemService(DevicePolicyManager.class);
         mMainHandler = mainHandler;
         mActivityStarter = activityStarter;
+        mSecureSettings = secureSettings;
         mSecurityController = securityController;
         mHandler = new H(bgLooper);
         mUserTracker = userTracker;
@@ -230,13 +234,26 @@ class QSSecurityFooter extends ViewController<View>
                 new IntentFilter(DevicePolicyManager.ACTION_SHOW_DEVICE_MONITORING_DIALOG),
                 mHandler, UserHandle.ALL);
         mView.setOnClickListener(this);
+        mSecureSettings.registerContentObserverForUser(
+                Settings.Secure.getUriFor(Settings.Secure.STATUS_BAR_HIDE_VPN_ICON),
+                false,
+                mShowVPNIconObserver,
+                UserHandle.USER_ALL);
     }
 
     @Override
     protected void onViewDetached() {
         mBroadcastDispatcher.unregisterReceiver(mReceiver);
         mView.setOnClickListener(null);
+        mSecureSettings.unregisterContentObserver(mShowVPNIconObserver);
     }
+
+    private final ContentObserver mShowVPNIconObserver = new ContentObserver(null) {
+        @Override
+        public void onChange(boolean selfChange) {
+            handleRefreshState();
+        }
+    };
 
     public void setListening(boolean listening) {
         if (listening) {
@@ -311,10 +328,14 @@ class QSSecurityFooter extends ViewController<View>
         final boolean isWorkProfileOn = mSecurityController.isWorkProfileOn();
         final boolean hasDisclosableWorkProfilePolicy = hasCACertsInWorkProfile
                 || vpnNameWorkProfile != null || (hasWorkProfile && isNetworkLoggingEnabled);
+        final boolean showVPN = mSecureSettings.getIntForUser(
+            Settings.Secure.STATUS_BAR_HIDE_VPN_ICON,
+            0,
+            UserHandle.USER_CURRENT) == 0;
         // Update visibility of footer
         mIsVisible = (isDeviceManaged && !isDemoDevice)
                 || hasCACerts
-                || vpnName != null
+                || (vpnName != null && showVPN)
                 || isProfileOwnerOfOrganizationOwnedDevice
                 || isParentalControlsEnabled
                 || (hasDisclosableWorkProfilePolicy && isWorkProfileOn);

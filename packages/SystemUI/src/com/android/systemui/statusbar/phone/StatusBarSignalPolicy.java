@@ -18,7 +18,10 @@ package com.android.systemui.statusbar.phone;
 
 import android.annotation.NonNull;
 import android.content.Context;
+import android.database.ContentObserver;
 import android.os.Handler;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.telephony.SubscriptionInfo;
 import android.util.ArraySet;
 import android.util.Log;
@@ -37,6 +40,7 @@ import com.android.systemui.statusbar.policy.SecurityController;
 import com.android.systemui.tuner.TunerService;
 import com.android.systemui.tuner.TunerService.Tunable;
 import com.android.systemui.util.CarrierConfigTracker;
+import com.android.systemui.util.settings.SecureSettings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +71,7 @@ public class StatusBarSignalPolicy implements SignalCallback,
     private final CarrierConfigTracker mCarrierConfigTracker;
     private final TunerService mTunerService;
     private final FeatureFlags mFeatureFlags;
+    private final SecureSettings mSecureSettings;
 
     private boolean mHideAirplane;
     private boolean mHideMobile;
@@ -91,7 +96,8 @@ public class StatusBarSignalPolicy implements SignalCallback,
             NetworkController networkController,
             SecurityController securityController,
             TunerService tunerService,
-            FeatureFlags featureFlags
+            FeatureFlags featureFlags,
+            SecureSettings secureSettings
     ) {
         mContext = context;
 
@@ -101,6 +107,7 @@ public class StatusBarSignalPolicy implements SignalCallback,
         mSecurityController = securityController;
         mTunerService = tunerService;
         mFeatureFlags = featureFlags;
+        mSecureSettings = secureSettings;
 
         mSlotAirplane = mContext.getString(com.android.internal.R.string.status_bar_airplane);
         mSlotMobile   = mContext.getString(com.android.internal.R.string.status_bar_mobile);
@@ -122,16 +129,28 @@ public class StatusBarSignalPolicy implements SignalCallback,
         mTunerService.addTunable(this, StatusBarIconController.ICON_HIDE_LIST);
         mNetworkController.addCallback(this);
         mSecurityController.addCallback(this);
+        mSecureSettings.registerContentObserverForUser(
+                Settings.Secure.getUriFor(Settings.Secure.STATUS_BAR_HIDE_VPN_ICON),
+                false,
+                mShowVPNIconObserver,
+                UserHandle.USER_ALL);
     }
 
     public void destroy() {
         mTunerService.removeTunable(this);
         mNetworkController.removeCallback(this);
         mSecurityController.removeCallback(this);
+        mSecureSettings.unregisterContentObserver(mShowVPNIconObserver);
     }
 
     private void updateVpn() {
-        boolean vpnVisible = mSecurityController.isVpnEnabled();
+        boolean showVPNIcon =
+                mSecureSettings.getIntForUser(
+                        Settings.Secure.STATUS_BAR_HIDE_VPN_ICON,
+                        0,
+                        UserHandle.USER_CURRENT) == 0;
+
+        boolean vpnVisible = mSecurityController.isVpnEnabled() && showVPNIcon;
         int vpnIconId = currentVpnIconId(mSecurityController.isVpnBranded());
 
         mIconController.setIcon(mSlotVpn, vpnIconId,
@@ -447,6 +466,13 @@ public class StatusBarSignalPolicy implements SignalCallback,
     public void setMobileDataEnabled(boolean enabled) {
         // Don't care.
     }
+
+    private final ContentObserver mShowVPNIconObserver = new ContentObserver(null) {
+        @Override
+        public void onChange(boolean selfChange) {
+            onStateChanged();
+        }
+    };
 
     /**
      * Stores the statusbar state for no Calling & SMS.
