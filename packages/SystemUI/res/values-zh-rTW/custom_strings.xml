@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-</resources>
     <string name="quick_settings_powershare_label">電力共用</string>
     <string name="quick_settings_powershare_off_powersave_label">電力共用關閉\n電力節省</string>
     <string name="quick_settings_powershare_off_low_battery_label">電力共用關閉\n電力過低</string>
