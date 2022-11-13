@@ -10,4 +10,7 @@
     <string name="screen_pinning_toast_no_navbar_fpsensor">要取消固定此屏幕，请触摸并按住指纹传感器。</string>
     <string name="face_unlock_recognizing">正在识别面部...</string>
     <string name="fiveg_title">5G 网络</string>
+    <string name="quick_settings_caffeine_label">保持亮屏</string>
+    <string name="accessibility_quick_settings_caffeine_off">保持亮屏关闭。</string>
+    <string name="accessibility_quick_settings_caffeine_on">保持亮屏开启。</string>
 </resources>

@@ -10,4 +10,7 @@
     <string name="screen_pinning_toast_no_navbar_fpsensor">要取消固定這個畫面，碰觸 &amp; 按住指紋感應器。</string>
     <string name="face_unlock_recognizing">臉部辨識中...</string>
     <string name="fiveg_title">5G 網絡</string>
+    <string name="quick_settings_caffeine_label">暫停休眠</string>
+    <string name="accessibility_quick_settings_caffeine_off">暫停休眠關閉</string>
+    <string name="accessibility_quick_settings_caffeine_on">暫停休眠開啟</string>
 </resources>
